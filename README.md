@@ -9,3 +9,11 @@ https://space.bilibili.com/480804525
 这是我的b站账号。
 
 这个仓库创建于2023年12月24日。有些老视频里的算法代码可能没有在这里。
+
+## 目录划分
+
+bilibili：在bilibili上讲解的算法
+
+bitmountain：在比特山项目中的算法题
+
+leetcode：在力扣上的一些算法
