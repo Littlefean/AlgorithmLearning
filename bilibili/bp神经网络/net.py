@@ -1,7 +1,7 @@
 from typing import List
 from random import random, uniform, gauss
 from PIL import Image
-
+from my_math import matrix_mul, matrix_trans, sigmoid
 from copy import deepcopy
 
 
@@ -33,8 +33,6 @@ class Net:
 
         self._array_init()
 
-        ...
-
     def _array_init(self):
         """给所有的高纬数组初始化"""
         arr = self.layer_count_arr
@@ -50,53 +48,53 @@ class Net:
             width = n
             # 权值随机范围是在 -1/✓n ~ 1/✓n
 
-            weightLayer = [
-                # [uniform(-1 / (n ** 0.5), 1 / (n ** 0.5)) for _ in range(width)] for _ in range(height)
+            weight_layer = [
                 [gauss(0, 1 / (n ** 0.5)) for _ in range(width)] for _ in range(height)
             ]
-            self._weight_array.append(weightLayer)
+            self._weight_array.append(weight_layer)
 
     def __dict__(self):
         """将这个网络转成可以保存的对象，用于保存内部结构"""
         return {
-            "layerCountArr": self.layer_count_arr,
-            "_weightArray": self._weight_array,
-            "_tempNodeLightList": self._temp_node_light_list,
-            "_errNodeLightList": self._err_node_light_list,
+            "layer_count_arr": self.layer_count_arr,
+            "_weight_array": self._weight_array,
+            "_temp_node_light_list": self._temp_node_light_list,
+            "_err_node_light_list": self._err_node_light_list,
             # 学习率
-            "studyRate": self.study_rate,
+            "study_rate": self.study_rate,
             # 正确的目标亮度值
-            "trueValue": self.true_value,
+            "true_value": self.true_value,
             # 错误的目标亮度值
-            "falseValue": self.false_value,
+            "false_value": self.false_value,
         }
 
-    def saveNetToFile(self, fileName):
+    def save_net_to_file(self, file_name):
         """把当前的网络保存到saveNet文件夹下"""
-        with open(f"saveNet/{fileName}.py", "w", encoding="utf-8") as f:
+        with open(f"save_net/{file_name}.py", "w", encoding="utf-8") as f:
             f.write(repr(self.__dict__()))
 
     @classmethod
-    def getNetFromFile(cls, fileName):
+    def get_net_from_file(cls, file_name):
         """打开一个网络"""
-        with open(f"saveNet/{fileName}.py", encoding="utf-8") as f:
-            dicStr = f.read()
-        dic = eval(dicStr)
+        with open(f"save_net/{file_name}.py", encoding="utf-8") as f:
+            dict_string = f.read()
+        dic = eval(dict_string)
         res = cls()
-        res.true_value = dic["trueValue"]
-        res.false_value = dic["falseValue"]
-        res.study_rate = dic["studyRate"]
-        res.layer_count_arr = dic["layerCountArr"]
-        res._weight_array = dic["_weightArray"]
-        res._temp_node_light_list = dic["_tempNodeLightList"]
-        res._err_node_light_list = dic["_errNodeLightList"]
+        res.true_value = dic["true_value"]
+        res.false_value = dic["false_value"]
+        res.study_rate = dic["study_rate"]
+        res.layer_count_arr = dic["layer_count_arr"]
+        res._weight_array = dic["_weight_array"]
+        res._temp_node_light_list = dic["_temp_node_light_list"]
+        res._err_node_light_list = dic["_err_node_light_list"]
         return res
 
-    def saveCurrentNetImage(self, number: int):
+    def save_current_net_image(self, number: int):
         """保存当前的网络内部状态，生成一个图片"""
         # 先保存权重值
         for i, table in enumerate(self._weight_array):
-            tableToImage(table).save(f"netImg/第{i}层权值/{str(number).zfill(5)} 轮训练.png")
+            # tableToImage(table).save(f"netImg/第{i}层权值/{str(number).zfill(5)} 轮训练.png")
+            pass
         ...
 
     def input(self, arr: list):
@@ -106,36 +104,36 @@ class Net:
         for i, n in enumerate(arr):
             self._temp_node_light_list[0][i] = n
 
-    def leftToRight(self):
+    def left_to_right(self):
         """
         从左到右扩散传播，此时的暂存是已经填好了的
         一般在此之前会调用input函数
         :return:
         """
-        for layerIndex, leftArr in enumerate(self._temp_node_light_list):
-            if layerIndex == len(self._temp_node_light_list) - 1:
+        for layer_index, left_arr in enumerate(self._temp_node_light_list):
+            if layer_index == len(self._temp_node_light_list) - 1:
                 # 已经到了最后一层了，不能再向下传播了
                 break
             # leftArr 左侧一列神经元  nextArr 右侧一列神经元
-            rightArr = self._temp_node_light_list[layerIndex + 1]
+            right_arr = self._temp_node_light_list[layer_index + 1]
 
             # 遍历左侧每个神经元 ai
-            for i, a in enumerate(leftArr):
+            for i, a in enumerate(left_arr):
                 # 遍历右侧每个神经元 bj
-                for j, b in enumerate(rightArr):
+                for j, b in enumerate(right_arr):
                     # 开始累加数字
                     # 亮度乘以权重
-                    self._temp_node_light_list[layerIndex + 1][j] += self._getWeight(layerIndex, i, j) * a
+                    self._temp_node_light_list[layer_index + 1][j] += self._get_weight(layer_index, i, j) * a
 
                 ...
             # 累加完了之后开始对右边统计进行 sigmoid(x + 偏置)
-            for i, sumNumber in enumerate(rightArr):
+            for i, sum_number in enumerate(right_arr):
                 # rightArr[i] = sigmoid(x + self._getBias(layerIndex + 1, i))
-                rightArr[i] = sigmoid(sumNumber)
+                right_arr[i] = sigmoid(sum_number)
         # 最终填好的数字就到最右侧了
         ...
 
-    def showNode(self):
+    def show_node(self):
         """打印当前网络的点亮状态"""
         for arr in self._temp_node_light_list:
             print(arr)
@@ -148,7 +146,7 @@ class Net:
             #         print(n, end="\t")
         print("=" * 50)
 
-    def showResult(self):
+    def show_result(self):
         """打印当前网络结果层的点亮状态"""
         a = []
         for i, n in enumerate(self._temp_node_light_list[-1]):
@@ -158,18 +156,18 @@ class Net:
         print("可能性最高：", max(a, key=lambda x: x[1])[0])
         print("-" * 50)
 
-    def getResult(self):
+    def get_result(self):
         """获取当前网络得到的结果"""
         maxLight = -float("INF")
         maxIndex = 0
         for y in range(self.layer_count_arr[-1]):
-            lightness = self._getNodeLight(len(self.layer_count_arr) - 1, y)
+            lightness = self._get_node_light(len(self.layer_count_arr) - 1, y)
             if lightness > maxLight:
                 maxLight = lightness
                 maxIndex = y
         return maxIndex
 
-    def showInner(self):
+    def show_inner(self):
         """展示网络的内部结构，所有的偏和权"""
         print("========")
         for table in self._weight_array:
@@ -181,22 +179,22 @@ class Net:
         #     print(col)
         print("--------")
 
-    def _getNodeLight(self, colIndex, i):
+    def _get_node_light(self, col_index, i):
         """获取某一个位置上节点的亮度"""
-        return self._temp_node_light_list[colIndex][i]
+        return self._temp_node_light_list[col_index][i]
 
-    def _getNodeErr(self, colIndex, i):
+    def _get_node_err(self, col_index, i):
         """获取某一个位置上节点的误差值"""
-        return self._err_node_light_list[colIndex][i]
+        return self._err_node_light_list[col_index][i]
 
-    def _setNodeErr(self, colIndex, i, value):
+    def _set_node_err(self, col_index, i, value):
         """设置某一个位置节点的误差值"""
-        self._err_node_light_list[colIndex][i] = value
+        self._err_node_light_list[col_index][i] = value
 
-    def _getWeight(self, leftLayer, i, j):
+    def _get_weight(self, left_layer, i, j):
         """
         获取权重
-        :param leftLayer: 从左边列出发，左边列的列编号是多少
+        :param left_layer: 从左边列出发，左边列的列编号是多少
         :param i: 左列的第多少个节点
         :param j: 右侧列的第几个节点
         网络示意图
@@ -212,17 +210,17 @@ class Net:
         ] 与python神经网络那本书上刚好是转置的对应关系
         :return:
         """
-        return self._weight_array[leftLayer][i][j]
+        return self._weight_array[left_layer][i][j]
 
-    def _setWeight(self, leftLayer, i, j, value):
+    def _set_weight(self, left_layer, i, j, value):
         """更改一条权重"""
-        self._weight_array[leftLayer][i][j] = value
+        self._weight_array[left_layer][i][j] = value
 
-    def _getWeightMatrix(self, leftLayer):
+    def _get_weight_matrix(self, left_layer):
         """获取权重矩阵，这个和书上是一致的，不是转置的"""
-        return matrixTrans(self._weight_array[leftLayer])
+        return matrix_trans(self._weight_array[left_layer])
 
-    def inputImg(self, img: Image):
+    def input_img(self, img: Image.Image):
         """输入一张灰度图"""
         arr = []
         for y in range(img.height):
@@ -235,57 +233,57 @@ class Net:
                 arr.append((r + g + b) // 3 / 255)
         self.input(arr)
 
-    def showInputImgMatrix(self):
+    def show_input_img_matrix(self):
         # 默认图片是正方形的
         length = int(self.layer_count_arr[0] ** 0.5)
         for y in range(length):
             for x in range(length):
-                m = self._getNodeLight(0, y * length + x)
+                m = self._get_node_light(0, y * length + x)
                 if m <= 0:
                     print("   ", end="  ")
                 else:
                     print(round(m, 3), end="  ")
             print()
 
-    def inputKnowAndChange(self, im: Image, number: int):
+    def input_know_and_change(self, im: Image.Image, number: int):
         """
         传入一个已经知道是数字几的图片
         并反向传播填写期待更改的数字
         反向传播误差，然后更改每一个权重
         """
-        self.inputImg(im)
-        self.leftToRight()
-        rightIndex = len(self.layer_count_arr) - 1
+        self.input_img(im)
+        self.left_to_right()
+        right_index = len(self.layer_count_arr) - 1
         # ===== 更新每一层节点头顶上的误差数字
         # 先更新最右侧的
         for n in range(self.layer_count_arr[-1]):  # 0123456789
-            light = self._getNodeLight(rightIndex, n)  # 遍历获取最右侧节点的亮度
+            light = self._get_node_light(right_index, n)  # 遍历获取最右侧节点的亮度
 
             if n == number:
                 e = self.true_value - light
             else:
                 e = self.false_value - light
-            self._setNodeErr(rightIndex, n, e)
-        for i in reversed(range(rightIndex)):  # 0 1 ... rightIndex-1    反着来
-            m = self._getWeightMatrix(i)
+            self._set_node_err(right_index, n, e)
+        for i in reversed(range(right_index)):  # 0 1 ... rightIndex-1    反着来
+            m = self._get_weight_matrix(i)
             v = self._err_node_light_list[i + 1]
-            v1 = matrixMul(matrixTrans(m), v)
+            v1 = matrix_mul(matrix_trans(m), v)
             for j, n in enumerate(v1):
-                self._setNodeErr(i, j, n)
+                self._set_node_err(i, j, n)
         # =====
 
         # 对每一条权重 进行求梯度，更改
-        for leftLayer in range(len(self.layer_count_arr) - 1):
+        for left_layer in range(len(self.layer_count_arr) - 1):
             # 遍历每一个左竖列 ，最右边不需要 所以 -1
-            for i in range(self.layer_count_arr[leftLayer]):
-                leftLight = self._getNodeLight(leftLayer, i)
+            for i in range(self.layer_count_arr[left_layer]):
+                left_light = self._get_node_light(left_layer, i)
 
-                for j in range(self.layer_count_arr[leftLayer + 1]):
-                    oldW = self._getWeight(leftLayer, i, j)
-                    rightLight = self._getNodeLight(leftLayer + 1, j)
-                    rightErr = self._getNodeErr(leftLayer + 1, j)
-                    rate = -rightErr * rightLight * (1 - rightLight) * leftLight
-                    self._setWeight(leftLayer, i, j, oldW - self.study_rate * rate)
+                for j in range(self.layer_count_arr[left_layer + 1]):
+                    oldW = self._get_weight(left_layer, i, j)
+                    right_light = self._get_node_light(left_layer + 1, j)
+                    right_err = self._get_node_err(left_layer + 1, j)
+                    rate = -right_err * right_light * (1 - right_light) * left_light
+                    self._set_weight(left_layer, i, j, oldW - self.study_rate * rate)
                     # todo 每输入一个数字图片就整体更改一次权重，可能会出现打架的问题
 
             ...
