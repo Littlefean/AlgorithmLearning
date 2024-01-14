@@ -2,7 +2,7 @@ from typing import List
 from random import random, uniform, gauss
 from PIL import Image
 from my_math import matrix_mul, matrix_trans, sigmoid
-from copy import deepcopy
+import json
 
 
 class Net:
@@ -69,16 +69,25 @@ class Net:
         }
 
     def save_net_to_file(self, file_name):
-        """把当前的网络保存到saveNet文件夹下"""
+        """把当前的网络保存到save_net下"""
         with open(f"save_net/{file_name}.py", "w", encoding="utf-8") as f:
             f.write(repr(self.__dict__()))
 
+    def save_net_to_json(self, file_name):
+        """保存成json文件到save_net下"""
+        with open(f"save_net/{file_name}.json", "w", encoding="utf-8") as f:
+            f.write(json.dumps(self.__dict__()))
+
     @classmethod
-    def get_net_from_file(cls, file_name):
+    def get_net_from_file(cls, file_name, file_type='py'):
         """打开一个网络"""
-        with open(f"save_net/{file_name}.py", encoding="utf-8") as f:
-            dict_string = f.read()
-        dic = eval(dict_string)
+        if file_type == 'py':
+            with open(f"save_net/{file_name}.py", encoding="utf-8") as f:
+                string = f.read()
+        else:
+            with open(f"save_net/{file_name}.json", encoding="utf-8") as f:
+                string = f.read()
+        dic = eval(string)
         res = cls()
         res.true_value = dic["true_value"]
         res.false_value = dic["false_value"]
@@ -131,7 +140,7 @@ class Net:
                 # rightArr[i] = sigmoid(x + self._getBias(layerIndex + 1, i))
                 right_arr[i] = sigmoid(sum_number)
         # 最终填好的数字就到最右侧了
-        ...
+        pass
 
     def show_node(self):
         """打印当前网络的点亮状态"""

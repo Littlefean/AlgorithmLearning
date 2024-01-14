@@ -5,6 +5,7 @@ from typing import Dict, List
 import os
 from time import perf_counter
 from random import shuffle
+from datetime import datetime
 
 from PIL import Image
 
@@ -14,7 +15,7 @@ from net import Net
 
 def train1():
     """
-    测试训练，只训练部分数字
+    训练
     :return:
     """
 
@@ -45,7 +46,8 @@ def train1():
         print(f"{i}/{split}")
 
     # 将网络保存在本地，方便后续手动测试
-    # nt.save_net_to_file('test-2024-1-9-0123456789')
+    now = datetime.now()
+    nt.save_net_to_file(f'net-{now.year}-{now.month}-{now.day}-{now.hour}-{now.minute}-{now.second}')
 
     t2 = perf_counter()
     print('训练耗时：', t2 - t1, 's')
@@ -68,6 +70,12 @@ def train1():
     pass
 
 
+def transform_file():
+    net = Net.get_net_from_file('test-2024-1-9-0123456789')
+    net.save_net_to_json('test-2024-1-9-0123456789')
+    net = Net.get_net_from_file('test-2024-1-9-0123456789', file_type='json')
+
+
 def test1():
     # net = Net.get_net_from_file('test-2024-1-9-12')
     # net = Net.get_net_from_file('test-2024-1-9-01234')
@@ -81,8 +89,9 @@ def test1():
 
 
 def main():
-    train1()
+    # train1()
     # test1()
+    transform_file()
     pass
 
 

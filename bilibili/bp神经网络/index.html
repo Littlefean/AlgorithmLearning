@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Drawing Board</title>
+    <style>
+      body {
+        height: 100vh;
+        margin: 0;
+        background-color: #2b2b2b;
+        overflow: hidden;
+      }
+      body > .left,
+      body > .right {
+        float: left;
+      }
+      .pixel {
+        width: 20px;
+        height: 20px;
+        outline: 1px solid #6f6f6f;
+        background-color: #000;
+        float: left;
+        user-select: none;
+      }
+      body > .right {
+        padding-left: 10px;
+        color: whitesmoke;
+      }
+      .rate-list p {
+        margin: 0;
+      }
+      .rate-list .bar {
+        background-color: green;
+        height: 15px;
+        width: 100px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="left">
+      <div id="drawing-board"></div>
+    </div>
+    <div class="right">
+      <div class="rate-list">
+        <p>[0]：<span class="bar"></span></p>
+        <p>[1]：<span class="bar"></span></p>
+        <p>[2]：<span class="bar"></span></p>
+        <p>[3]：<span class="bar"></span></p>
+        <p>[4]：<span class="bar"></span></p>
+        <p>[5]：<span class="bar"></span></p>
+        <p>[6]：<span class="bar"></span></p>
+        <p>[7]：<span class="bar"></span></p>
+        <p>[8]：<span class="bar"></span></p>
+        <p>[9]：<span class="bar"></span></p>
+      </div>
+
+      <h2>最有可能：<span class="result"></span></h2>
+    </div>
+    <script src="./net.js"></script>
+    <!-- 引入DATA全局变量 -->
+    <script src="./save_net/test-2024-1-9-0123456789.js"></script>
+    <script>
+
+      const net = Net.getNetFromJson(DATA);
+      console.log(net);
+      // 网络的输入，一维数组
+      const inputArray = new Array(28 * 28).fill(0);
+
+      // 创建像素矩阵
+      const drawingBoard = document.getElementById("drawing-board");
+
+      // 设置画板大小
+      const rows = 28;
+      const cols = 28;
+      drawingBoard.style.width = `${cols * 20}px`;
+      drawingBoard.style.height = `${rows * 20}px`;
+
+      // 创建像素块
+      for (let i = 0; i < rows * cols; i++) {
+        const pixel = document.createElement("div");
+        pixel.classList.add("pixel");
+        drawingBoard.appendChild(pixel);
+      }
+
+      // 标记是否正在绘制
+      let isDrawing = false;
+
+      // 监听鼠标按下事件
+      drawingBoard.addEventListener("mousedown", () => {
+        isDrawing = true;
+      });
+
+      // 监听鼠标移动事件
+      drawingBoard.addEventListener("mousemove", (e) => {
+        if (isDrawing) {
+          draw(e);
+        }
+      });
+
+      // 监听鼠标释放事件
+      drawingBoard.addEventListener("mouseup", () => {
+        isDrawing = false;
+      });
+
+      // 绘制函数
+      function draw(e) {
+        // 计算鼠标在画板上的坐标
+        const x = Math.floor(e.clientX / 20);
+        const y = Math.floor(e.clientY / 20);
+
+        // 获取对应的像素块
+        const pixelIndex = y * cols + x;
+        const pixel = drawingBoard.children[pixelIndex];
+
+        // 改变像素块的背景颜色
+        pixel.style.backgroundColor = "#fff";
+
+        // 更改数据
+        inputArray[pixelIndex] = 1;
+        net.input(inputArray);
+        net.leftToRight();
+        const resultArr = net.getResult();
+        const bars = document.querySelectorAll(".bar");
+        for (let i = 0; i < bars.length; i++) {
+          const bar = bars[i];
+          bar.style.width = `${resultArr[i] * 100}px`;
+        }
+        // 填写最终结果数字
+        let maxValue = -10;
+        let result = -1;
+        for (let i = 0; i < 10; i++) {
+            if (maxValue < resultArr[i]) {
+                maxValue = resultArr[i];
+                result = i;
+            }
+        }
+        document.querySelector('.result').innerHTML = `${result}`;
+      }
+    </script>
+  </body>
+</html>
