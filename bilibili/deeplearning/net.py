@@ -1,7 +1,7 @@
 from typing import List
-from random import random, uniform, gauss
+from random import gauss
 from PIL import Image
-from my_math import matrix_mul, matrix_trans, sigmoid
+from bilibili.deeplearning.tools.my_math import matrix_mul, matrix_trans, sigmoid
 import json
 
 
@@ -68,25 +68,25 @@ class Net:
             "false_value": self.false_value,
         }
 
-    def save_net_to_file(self, file_name):
-        """把当前的网络保存到save_net下"""
-        with open(f"save_net/{file_name}.py", "w", encoding="utf-8") as f:
+    def save_net_to_file(self, path_file: str):
+        """把当前的网络保存到指定目录下，注意要保存成py文件"""
+        with open(path_file, "w", encoding="utf-8") as f:
             f.write(repr(self.__dict__()))
 
-    def save_net_to_json(self, file_name):
-        """保存成json文件到save_net下"""
-        with open(f"save_net/{file_name}.json", "w", encoding="utf-8") as f:
+    def save_net_to_js(self, path_file: str):
+        """保存成js文件到指定目录下"""
+        with open(path_file, "w", encoding="utf-8") as f:
             f.write(json.dumps(self.__dict__()))
 
     @classmethod
-    def get_net_from_file(cls, file_name, file_type='py'):
-        """打开一个网络"""
-        if file_type == 'py':
-            with open(f"save_net/{file_name}.py", encoding="utf-8") as f:
-                string = f.read()
-        else:
-            with open(f"save_net/{file_name}.json", encoding="utf-8") as f:
-                string = f.read()
+    def get_net_from_path_file(cls, file_path: str):
+        """
+        打开一个网络
+        :param file_path:
+        :return:
+        """
+        with open(file_path, encoding="utf-8") as f:
+            string = f.read()
         dic = eval(string)
         res = cls()
         res.true_value = dic["true_value"]

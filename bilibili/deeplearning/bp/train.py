@@ -9,8 +9,8 @@ from datetime import datetime
 
 from PIL import Image
 
-from img_generate import get_img_list
-from net import Net
+from bilibili.deeplearning.tools.img_generate import get_img_list
+from bilibili.deeplearning.net import Net
 
 
 def train1():
@@ -24,7 +24,7 @@ def train1():
 
     # 生成数据集
     for number in number_set:  # 修改这里，实现只训练固定的数字
-        path = f'imgs/in/{number}'
+        path = f'../imgs/in/{number}'
         for img_filename in os.listdir(path):
             data_set[number] += get_img_list(Image.open(path + os.sep + img_filename))
 
@@ -47,7 +47,7 @@ def train1():
 
     # 将网络保存在本地，方便后续手动测试
     now = datetime.now()
-    nt.save_net_to_file(f'net-{now.year}-{now.month}-{now.day}-{now.hour}-{now.minute}-{now.second}')
+    nt.save_net_to_file(f'../net-{now.year}-{now.month}-{now.day}-{now.hour}-{now.minute}-{now.second}.py')
 
     t2 = perf_counter()
     print('训练耗时：', t2 - t1, 's')
@@ -56,6 +56,7 @@ def train1():
     correct_dict = {n: 0 for n in range(0, 10)}  # 答正确的次数
     test_count_pre_number = len(test_set[0])
 
+    # 测试每一个数字，累加正确率
     for i in range(test_count_pre_number):
         for number in number_set:
             nt.input_img(test_set[number][i])
@@ -71,15 +72,13 @@ def train1():
 
 
 def transform_file():
-    net = Net.get_net_from_file('test-2024-1-9-0123456789')
-    net.save_net_to_json('test-2024-1-9-0123456789')
-    net = Net.get_net_from_file('test-2024-1-9-0123456789', file_type='json')
+    """将文件转换为json格式，用于前端读取"""
+    net = Net.get_net_from_path_file('../save_net/test-2024-1-9-0123456789.py')
+    net.save_net_to_js('../save_net/test-2024-1-9-0123456789.js')
 
 
 def test1():
-    # net = Net.get_net_from_file('test-2024-1-9-12')
-    # net = Net.get_net_from_file('test-2024-1-9-01234')
-    net = Net.get_net_from_file('test-2024-1-9-0123456789')
+    net = Net.get_net_from_path_file('../save_net/test-2024-1-9-0123456789.py')
     net.input_img(Image.open('test.png'))
     net.left_to_right()
     net.show_input_img_matrix()
@@ -90,8 +89,8 @@ def test1():
 
 def main():
     # train1()
-    # test1()
-    transform_file()
+    test1()
+    # transform_file()
     pass
 
 

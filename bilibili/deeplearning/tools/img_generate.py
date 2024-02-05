@@ -131,7 +131,7 @@ def main():
     运行main函数后，将会根据imgs文件夹的in文件夹生成out文件夹并保存
     :return:
     """
-    original_img = img_to_pillow('imgs/in/2/0.png')
+    original_img = img_to_pillow('../imgs/in/2/0.png')
     # # 旋转
     arr1 = get_rotate_img_list(original_img)
     # # 拉扯
